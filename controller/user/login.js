@@ -38,7 +38,7 @@ exports.generate = (req, res, next) => {
   }
 
   async function main() {
-    let results = await generateItems(50, (i) => ({
+    let results = await generateItems(3, (i) => ({
       id: i,
       title: `ชื่อกลุ่มอาหารที่ ${i}`,
       detail: `รายละเอียดกลุ่มอาหารที่ ${i}`,
@@ -46,11 +46,31 @@ exports.generate = (req, res, next) => {
     }));
     let allListMenu = [];
     for (let [index, value] of results.entries()) {
-      value.listMenu = await generateItems(50, (i) => ({
+      value.listMenu = await generateItems(10, (i) => ({
         id: `${index} : ${i}`,
         title: `${index} : ชื่ออาหารที่ ${i}`,
-        detail: `${index} : รายละเอียดอาหารที่ ${i}`,
-        price: i * 10,
+        // img: `https://picsum.photos/200/300?random=${index}${i}`,
+        img: `https://api.lorem.space/image/burger?w=150&h=150&hash=8B7BCD${index}${i}`,
+        detail: `${index} : รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่รายละเอียดอาหารที่ ${i}`,
+        price: {
+          type: i % 2 == 0 ? "default" : "list",
+          default: i * 30,
+          list: [
+            { title: "s", value: i * 10 },
+            { title: "m", value: i * 20 },
+            { title: "l", value: i * 30 },
+          ],
+        },
+        tags: [
+          { icon: "whatshot", color: "", title: "ขายดี" },
+          { icon: "whatshot", color: "", title: "ขายดี2" },
+          { icon: "whatshot", color: "", title: "ขายดี2" },
+          { icon: "whatshot", color: "", title: "ขายดี2" },
+          { icon: "whatshot", color: "", title: "ขายดี2" },
+          { icon: "whatshot", color: "", title: "ขายดี2" },
+          { icon: "whatshot", color: "", title: "ขายดี2" },
+          { icon: "whatshot", color: "", title: "ขายดี2" },
+        ],
       }));
       allListMenu.push(...value.listMenu);
     }
