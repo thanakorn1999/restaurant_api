@@ -25,65 +25,76 @@ const jwtAuth = new JwtStrategy(jwtOptions, function (req, payload, done) {
 
 passport.use(jwtAuth);
 
-exports.add = (req, res, next) => {
+exports.register = (req, res, next) => {
+  // {
+  //    "email": "jame@mail.com",
+  //    "password":"Jame123123123",
+  //    "first_name":"first_name",
+  //    "last_name":"last_name"
+  //  }
   let { body } = req;
 
-  body.username = body.workplace_email;
-  delete body.repassword;
-
-  let sql_check = `SELECT id FROM du_user WHERE username = '${body.username}'`;
-
-  db.query(sql_check, (err, check) => {
+  let sql_check = `SELECT id FROM du_user WHERE email = '${body.email}'`;
+  req.getConnection((err, connection) => {
     if (err) return next(err);
-    if (check.rows.length > 0) {
-      res.json(
-        resp(
-          false,
-          null,
-          "ชื่อผู้ใช้งานนี้ถูกใช้ไปแล้ว กรุณาเปลี่ยนใหม่",
-          "This email is already registered"
-        )
-      );
-    } else {
-      bcrypt.hash(body.password, 10, function (err, hash) {
-        body.password = hash;
 
-        [keys, values] = remap(body);
+    connection.query(sql_check, (err, check) => {
+      if (err) return next(err);
+      // if (check.rows.length > 0) {
+      if (check.length > 0) {
+        res.json(
+          resp(
+            false,
+            null,
+            "ชื่อผู้ใช้งานนี้ถูกใช้ไปแล้ว กรุณาเปลี่ยนใหม่",
+            "This email is already registered"
+          )
+        );
+      } else {
+        bcrypt.hash(body.password, 10, function (err, hash) {
+          body.password = hash;
 
-        let sql = `INSERT INTO du_user (${keys}) VALUES (${values}) RETURNING id;`;
-        db.query(sql, (err, new_user) => {
-          if (err) return next(err);
-          // let newUserId = new_user.rows[0].id;
-          // db.query(sql_logs, (err_logs, _) => {
-          //   if (err_logs) return next(err_logs);
-          //   res.json(resp(true, null, null, null));
-          // });
-          res.json(resp(true, null, null, null));
+          let sql = `INSERT INTO du_user SET ?`;
+
+          connection.query(sql, body, (err, new_user) => {
+            if (err) return next(err);
+            console.log(`err`, err);
+            // let newUserId = new_user.rows[0].id;
+            res.json(resp(true, null, null, null));
+          });
         });
-      });
-    }
+      }
+    });
   });
 };
 
 exports.login = (req, res, next) => {
+  // {
+  //   "email": "jame@mail.com",
+  //   "password":"Jame123123123"
+  // }
   async function searchUser(sql) {
     return new Promise((resolve) => {
-      db.query(sql, (err, result) => {
+      req.getConnection((err, connection) => {
         if (err) return next(err);
-
-        resolve(result.rows);
+        connection.query(sql, (err, result) => {
+          if (err) return next(err);
+          // console.log(`result`, result);
+          resolve(result);
+        });
       });
     });
   }
 
   async function main() {
     var { body } = req;
-    var username = body.username.toLowerCase();
+    var email = body.email.toLowerCase();
     var password = body.password;
 
-    let sql = ` SELECT * FROM du_user WHERE lower(username) =  '${username}'`;
+    let sql = ` SELECT * FROM du_user WHERE lower(email) =  '${email}'`;
 
     let foundData = await searchUser(sql);
+    // console.log(`foundData`, foundData);
 
     if (foundData.length > 0) {
       let isPasswordCorrect = false;
